@@ -6,5 +6,6 @@ import (
 )
 
 type Timeline interface {
-	GetPublicTimeline(ctx context.Context, maxID, sinceID, limit int) ([]*object.Status, error)
+	GetPublicTimeline(ctx context.Context, sinceID, limit int64) ([]*object.Status, error)
+	GetHomeTimeline(ctx context.Context, id, maxID, sinceID, limit int64) ([]*object.Status, error)
 }

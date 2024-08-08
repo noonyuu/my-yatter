@@ -489,6 +489,13 @@ paths:
       description: ""
       operationId: findHomeTimelines
       parameters:
+        - name: Authentication
+          in: header
+          description: Authentication
+          required: true
+          example: "username john"
+          schema:
+            type: string
         - &a1
           name: only_media
           in: query
