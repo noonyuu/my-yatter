@@ -13,6 +13,7 @@ type Status interface {
 	Create(ctx context.Context, status string, acc *object.Account) (*CreateStatusDTO, error)
 	FindByStatus(ctx context.Context, id string) (*GetStatusDTO, error)
 	GetPublicTimeline(ctx context.Context, maxId, sinceId, limit string) (*GetPublicStatusDTO, error)
+	DeleteStatus(ctx context.Context, id string) error
 }
 
 type status struct {
@@ -130,4 +131,30 @@ func (s *status) GetPublicTimeline(ctx context.Context, maxId, sinceId, limit st
 		Account: acc,
 		Status:  sta,
 	}, nil
+}
+
+func (s *status) DeleteStatus(ctx context.Context, id string) error {
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	// idをintに変換
+	ID, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	// statusの削除
+	err = s.sr.DeleteStatus(ctx, tx, ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

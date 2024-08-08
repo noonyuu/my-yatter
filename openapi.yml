@@ -459,6 +459,13 @@ paths:
       description: ""
       operationId: deleteStatus
       parameters:
+        - name: Authentication
+          in: header
+          description: Authentication
+          required: true
+          example: "username john"
+          schema:
+            type: string
         - name: id
           in: path
           description: ID of Status to delete

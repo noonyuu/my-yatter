@@ -81,3 +81,20 @@ func (s *status) FindStatusByID(ctx context.Context, id int) (*object.Status, er
 	}
 	return entity, nil
 }
+
+func (s *status) DeleteStatus(ctx context.Context, tx *sqlx.Tx, id int) error {
+	entity, err := s.FindStatusByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if entity == nil {
+		return nil
+	}
+
+	_, err = tx.Exec("delete from status where id = ?", id)
+	if err != nil {
+		return  fmt.Errorf("failed to delete status from db: %w", err)
+	}
+
+	return nil
+}
