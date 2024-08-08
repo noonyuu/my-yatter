@@ -14,6 +14,7 @@ type Account interface {
 	FindByUsername(ctx context.Context, username string) (*GetAccountDTO, error)
 	UpdateCredentials(ctx context.Context, account *object.Account) (*CreateAccountDTO, error)
 	FolloweeAccount(ctx context.Context, followee *object.Account, limit string) ([]*object.Account, error)
+	FollowerAccount(ctx context.Context, follower *object.Account, limit, sinceId string) ([]*object.Account, error)
 }
 
 type account struct {
@@ -118,6 +119,24 @@ func (a *account) FolloweeAccount(ctx context.Context, followee *object.Account,
 	}
 
 	acc, err := a.ar.FolloweeAccount(ctx, followee, lmt)
+	if err != nil {
+		return nil, err
+	}
+
+	return acc, nil
+}
+
+func (a *account) FollowerAccount(ctx context.Context, follower *object.Account, limit, sinceId string) ([]*object.Account, error) {
+	sin, err := strconv.Atoi(sinceId)
+	if err != nil {
+		return nil, err
+	}
+	lmt, err := strconv.Atoi(limit)
+	if err != nil {
+		return nil, err
+	}
+
+	acc, err := a.ar.FollowerAccount(ctx, follower, lmt, sin)
 	if err != nil {
 		return nil, err
 	}

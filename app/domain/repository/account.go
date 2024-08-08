@@ -17,4 +17,6 @@ type Account interface {
 	UpdateAccountCredential(ctx context.Context, tx *sqlx.Tx, account *object.Account) error
 	// フォローしているアカウントを取得する
 	FolloweeAccount(ctx context.Context, followee *object.Account, limit int) ([]*object.Account, error)
+	// フォローされているアカウントを取得する
+	FollowerAccount(ctx context.Context, follower *object.Account, limit int, sinceID int) ([]*object.Account, error)
 }

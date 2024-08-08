@@ -33,7 +33,7 @@ func NewRouter(ru usecase.Relationship, au usecase.Account, ar repository.Accoun
 		r.Get("/", h.FindByUsername)
 		r.With(auth.Middleware(ar)).Post("/follow", h.Follow)
 		r.Get("/following", h.Following)
-		// r.Get("/followers", h.Followers)
+		r.Get("/followers", h.Followers)
 
 	})
 	return r

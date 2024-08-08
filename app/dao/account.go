@@ -114,6 +114,31 @@ func (a *account) FolloweeAccount(ctx context.Context, follower *object.Account,
 	return accounts, nil
 }
 
+func (a *account) FollowerAccount(ctx context.Context, followee *object.Account, limit, sinceId int) ([]*object.Account, error) {
+	query := "select * from account where id in (select follower_id from relationship where followee_id = ?) and id >= ? ORDER BY id DESC LIMIT ?"
+
+	rows, err := a.db.QueryxContext(ctx, query, followee.ID, sinceId, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var accounts []*object.Account
+	for rows.Next() {
+		entity := new(object.Account)
+		if err := rows.StructScan(entity); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, entity)
+	}
+	for _, account := range accounts {
+		err := a.FollowerAndFollowingCount(ctx, account)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return accounts, nil
+}
+
 func (a *account) FollowerAndFollowingCount(ctx context.Context, entity *object.Account) error {
 	err := a.db.QueryRowxContext(ctx, "select count(*) from relationship where followee_id = ?", entity.ID).Scan(&entity.FolloweeCount)
 	if err != nil {
