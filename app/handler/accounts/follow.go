@@ -9,6 +9,7 @@ import (
 
 func (h *handler) Follow(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	// ctx.Value()で、リクエストのコンテキストから値を取得する
 	username := ctx.Value("username").(string)
 	follower := auth.AccountOf(ctx) // 認証情報を取得する
 	if follower == nil {
