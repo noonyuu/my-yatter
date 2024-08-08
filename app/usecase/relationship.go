@@ -10,6 +10,7 @@ import (
 
 type Relationship interface {
 	FollowUser(ctx context.Context, followerID, followeeID *object.Account) error
+	UnFollowUser(ctx context.Context, followerID, followeeID *object.Account) error
 	GetRelationships(ctx context.Context, myAcc *object.Account, otherAcc []*object.Account) ([]*object.Relationship, error)
 }
 
@@ -42,6 +43,26 @@ func (r *relationship) FollowUser(ctx context.Context, follower, followee *objec
 	}()
 
 	err = r.rr.FollowUser(ctx, tx, follower, followee)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *relationship) UnFollowUser(ctx context.Context, follower, followee *object.Account) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	err = r.rr.UnFollowUser(ctx, tx, follower, followee)
 	if err != nil {
 		return err
 	}

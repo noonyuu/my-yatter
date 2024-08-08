@@ -32,9 +32,14 @@ func NewRouter(ru usecase.Relationship, au usecase.Account, ar repository.Accoun
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(username)
 		r.Get("/", h.FindByUsername)
-		r.With(auth.Middleware(ar)).Post("/follow", h.Follow)
 		r.Get("/following", h.Following)
 		r.Get("/followers", h.Followers)
+
+		r.Group(func(r chi.Router) {
+			r.Use(auth.Middleware(ar))
+			r.Post("/follow", h.Follow)
+			r.Post("/unfollow", h.UnFollow)
+		})
 
 	})
 	return r

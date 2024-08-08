@@ -312,6 +312,13 @@ paths:
       description: ""
       operationId: unfollowAccount
       parameters:
+        - name: Authentication
+          in: header
+          description: Authentication
+          required: true
+          example: "username john"
+          schema:
+            type: string
         - name: username
           in: path
           description: Username of account to follow
