@@ -26,7 +26,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(dto); err != nil {
+	if err := json.NewEncoder(w).Encode(newResponse(dto)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -70,6 +70,29 @@ type GetTimelineStatus struct {
 	Statuses []*HTTPResponse
 }
 
+type GetStatus struct {
+	Statues *HTTPResponse
+}
+
+func newResponse(dto *usecase.GetStatusDTO) *GetStatus {
+	return &GetStatus{
+		Statues: &HTTPResponse{
+			ID: dto.Status.ID,
+			Account: struct {
+				ID        int
+				UserName  string
+				CreatedAt time.Time
+			}{
+				ID:        int(dto.Account.ID),
+				UserName:  dto.Account.Username,
+				CreatedAt: dto.Account.CreateAt,
+			},
+			Content:   dto.Status.Content,
+			CreatedAt: dto.Status.CreatedAt,
+		},
+	}
+}
+
 func responseStatus(dto *usecase.GetPublicStatusDTO) *GetTimelineStatus {
 	statuses := make([]*HTTPResponse, len(dto.Status))
 	for i := range dto.Status {
@@ -77,7 +100,7 @@ func responseStatus(dto *usecase.GetPublicStatusDTO) *GetTimelineStatus {
 			ID: dto.Status[i].ID,
 			Account: struct {
 				ID        int
-				UserName  string 
+				UserName  string
 				CreatedAt time.Time
 			}{
 				ID:        int(dto.Account[i].ID),
