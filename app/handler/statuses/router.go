@@ -34,15 +34,6 @@ func NewRouter(ar repository.Account, su usecase.Status) http.Handler {
 	return r
 }
 
-func NewTimelineRouter(su usecase.Status) http.Handler {
-	r := chi.NewRouter()
-	h := &handler{su: su}
-
-	r.Get("/public", h.GetPublicTimeline)
-
-	return r
-}
-
 func id(n http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")

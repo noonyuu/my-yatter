@@ -20,7 +20,7 @@ type relationship struct {
 	ar repository.Account
 }
 
-var _ Status = (*status)(nil)
+var _ Relationship = (*relationship)(nil)
 
 func NewRelationship(db *sqlx.DB, rr repository.Relationship, ar repository.Account) *relationship {
 	return &relationship{
