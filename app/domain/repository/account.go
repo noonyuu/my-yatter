@@ -15,4 +15,6 @@ type Account interface {
 	// TODO: Add Other APIs
 	Create(ctx context.Context, tx *sqlx.Tx, acc *object.Account) error
 	UpdateAccountCredential(ctx context.Context, tx *sqlx.Tx, account *object.Account) error
+	// フォローしているアカウントを取得する
+	FolloweeAccount(ctx context.Context, followee *object.Account, limit int) ([]*object.Account, error)
 }

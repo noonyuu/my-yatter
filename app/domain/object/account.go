@@ -35,6 +35,12 @@ type Account struct {
 
 	// The time the account was created
 	CreateAt time.Time `json:"create_at,omitempty" db:"create_at"`
+	
+	// The number of accounts following this account
+	FollowerCount int `json:"follower_count" db:"-"`
+
+	// The number of accounts this account is following
+	FolloweeCount int `json:"followee_count" db:"-"`
 }
 
 func NewAccount(username, password string) (*Account, error) {
