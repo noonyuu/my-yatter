@@ -48,6 +48,15 @@ func NewAccount(username, password string) (*Account, error) {
 	return account, nil
 }
 
+func UpdateCredential(displayName, note, avatar, header string) (*Account, error) {
+	return &Account{
+		DisplayName: &displayName,
+		Note:        &note,
+		Avatar:      &avatar,
+		Header:      &header,
+	}, nil
+}
+
 // Check if given password is match to account's password
 func (a *Account) CheckPassword(pass string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(pass)) == nil

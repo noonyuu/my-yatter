@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"yatter-backend-go/app/domain/repository"
+	"yatter-backend-go/app/handler/auth"
 	"yatter-backend-go/app/usecase"
 
 	"github.com/go-chi/chi/v5"
@@ -24,11 +25,15 @@ func NewRouter(rr repository.Relationship, au usecase.Account, ar repository.Acc
 		au: au,
 	}
 	r.Post("/", h.Create)
+	r.Group(func(r chi.Router) {
+		
+		r.Use(auth.Middleware(ar))
+		r.Post("/update_credentials", h.UpdateCredential)
+	})
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(username)
 		r.Get("/", h.FindByUsername)
 	})
-	r.Post("/update_credentials", h.UpdateCredentials)
 	return r
 }
 

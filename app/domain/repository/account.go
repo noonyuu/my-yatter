@@ -14,4 +14,5 @@ type Account interface {
 	FindAccountByID(ctx context.Context, id int) (*object.Account, error)
 	// TODO: Add Other APIs
 	Create(ctx context.Context, tx *sqlx.Tx, acc *object.Account) error
+	UpdateAccountCredential(ctx context.Context, tx *sqlx.Tx, account *object.Account) error
 }

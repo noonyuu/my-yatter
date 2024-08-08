@@ -1,7 +1,6 @@
 openapi: 3.0.0
 info:
-  description:
-    "This is a sample server Twitter Clone server.  You can find out more
+  description: "This is a sample server Twitter Clone server.  You can find out more
     about     Swagger at [http://swagger.io](http://swagger.io) or on
     [irc.freenode.net, #swagger](http://swagger.io/irc/)."
   version: 1.0.0
@@ -145,6 +144,14 @@ paths:
       summary: Updating an account
       description: ""
       operationId: updateAccount
+      parameters:
+        - name: Authentication
+          in: header
+          description: Authentication
+          required: true
+          example: "username john"
+          schema:
+            type: string
       requestBody:
         content:
           multipart/form-data:
@@ -457,8 +464,7 @@ paths:
         - &a1
           name: only_media
           in: query
-          description:
-            Only return statuses that have media attachments (public and tag
+          description: Only return statuses that have media attachments (public and tag
             timelines only)
           required: false
           schema:

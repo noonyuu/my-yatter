@@ -63,3 +63,23 @@ func (a *account) FindAccountByID(ctx context.Context, id int) (*object.Account,
 
 	return entity, nil
 }
+
+func (a *account) UpdateAccountCredential(ctx context.Context, x *sqlx.Tx,account *object.Account) error {
+	tx, err := a.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	_, err = tx.ExecContext(ctx, "update account set display_name = ?, note = ?, avatar = ?, header = ? where id = ?",
+		account.DisplayName, account.Note, account.Avatar, account.Header, account.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update account: %w", err)
+	}
+	return nil
+}
