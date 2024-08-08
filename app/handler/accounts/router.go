@@ -28,6 +28,7 @@ func NewRouter(ru usecase.Relationship, au usecase.Account, ar repository.Accoun
 	}
 	r.Post("/", h.Create)
 	r.With(auth.Middleware(ar)).Post("/update_credentials", h.UpdateCredential)
+	r.With(auth.Middleware(ar)).Get("/relationships", h.Relationships)
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(username)
 		r.Get("/", h.FindByUsername)

@@ -10,6 +10,7 @@ import (
 
 type Relationship interface {
 	FollowUser(ctx context.Context, followerID, followeeID *object.Account) error
+	GetRelationships(ctx context.Context, myAcc *object.Account, otherAcc []*object.Account) ([]*object.Relationship, error)
 }
 
 type relationship struct {
@@ -46,4 +47,24 @@ func (r *relationship) FollowUser(ctx context.Context, follower, followee *objec
 	}
 
 	return nil
+}
+
+func (r *relationship) GetRelationships(ctx context.Context, myAcc *object.Account, otherAcc []*object.Account) ([]*object.Relationship, error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return nil ,err
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	relationships, err := r.rr.GetRelationship(ctx, myAcc, otherAcc)
+	if err != nil {
+		return nil, err
+	}
+
+	return relationships, nil
 }
