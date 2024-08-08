@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"yatter-backend-go/app/domain/object"
 	"yatter-backend-go/app/domain/repository"
 
@@ -8,28 +9,13 @@ import (
 )
 
 type Relationship interface {
-	// Follow(ctx context.Context, status string, acc *object.Account) (*CreateStatusDTO, error)
+	FollowUser(ctx context.Context, followerID, followeeID *object.Account) error
 }
 
 type relationship struct {
 	db *sqlx.DB
 	rr repository.Relationship
 	ar repository.Account
-}
-
-type CreateRelationshipDTO struct {
-	Account *object.Account
-	Status  *object.Status
-}
-
-type RelationshipDTO struct {
-	Account *object.Account
-	Status  *object.Status
-}
-
-type GetPublicRelationshipDTO struct {
-	Account []*object.Account
-	Status  []*object.Status
 }
 
 var _ Status = (*status)(nil)
@@ -42,4 +28,22 @@ func NewRelationship(db *sqlx.DB, rr repository.Relationship, ar repository.Acco
 	}
 }
 
-// func (s *status) Create(ctx context.Context, status string, acc *object.Account) (*CreateStatusDTO, error) {
+func (r *relationship) FollowUser(ctx context.Context, follower, followee *object.Account) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	err = r.rr.FollowUser(ctx, tx, follower, followee)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

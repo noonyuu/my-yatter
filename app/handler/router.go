@@ -16,7 +16,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func NewRouter(au usecase.Account, su usecase.Status, rr repository.Relationship, ar repository.Account) http.Handler {
+func NewRouter(au usecase.Account, su usecase.Status, ru usecase.Relationship, ar repository.Account) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -31,7 +31,7 @@ func NewRouter(au usecase.Account, su usecase.Status, rr repository.Relationship
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Mount("/v1/accounts", accounts.NewRouter(rr, au, ar))
+	r.Mount("/v1/accounts", accounts.NewRouter(ru, au, ar))
 	r.Mount("/v1/statuses", statuses.NewRouter(ar, su))
 	r.Mount("/v1/health", health.NewRouter())
 	r.Mount("/v1/auth", auth.NewRouter(ar))

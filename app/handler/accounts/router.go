@@ -12,27 +12,26 @@ import (
 
 // Implementation of handler
 type handler struct {
-	rr repository.Relationship
+	ru usecase.Relationship
 	au usecase.Account
+	ar repository.Account
 }
 
 // Create Handler for `/v1/accounts/`
-func NewRouter(rr repository.Relationship, au usecase.Account, ar repository.Account) http.Handler {
+func NewRouter(ru usecase.Relationship, au usecase.Account, ar repository.Account) http.Handler {
 	r := chi.NewRouter()
 
 	h := &handler{
-		rr: rr,
+		ru: ru,
 		au: au,
+		ar: ar,
 	}
 	r.Post("/", h.Create)
-	r.Group(func(r chi.Router) {
-		
-		r.Use(auth.Middleware(ar))
-		r.Post("/update_credentials", h.UpdateCredential)
-	})
+	r.With(auth.Middleware(ar)).Post("/update_credentials", h.UpdateCredential)
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(username)
 		r.Get("/", h.FindByUsername)
+		r.With(auth.Middleware(ar)).Post("/follow", h.Follow)
 	})
 	return r
 }

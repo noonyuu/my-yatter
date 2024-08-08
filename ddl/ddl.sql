@@ -22,7 +22,7 @@ CREATE TABLE `status` (
 CREATE TABLE `relationship` (
   `follower_id` bigint(20) NOT NULL,
   `followee_id` bigint(20) NOT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`follower_id`, `followee_id`),
   FOREIGN KEY (`follower_id`) REFERENCES `account` (`id`),
   FOREIGN KEY (`followee_id`) REFERENCES `account` (`id`)
 );

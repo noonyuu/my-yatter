@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"yatter-backend-go/app/domain/object"
-	"yatter-backend-go/app/domain/repository"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -13,11 +12,11 @@ type relationship struct {
 	db *sqlx.DB
 }
 
-func NewRelationship(db *sqlx.DB) repository.Relationship {
+func NewRelationship(db *sqlx.DB) *relationship {
 	return &relationship{db: db}
 }
 
-func (r *relationship) FollowUser(ctx context.Context, follower *object.Account, followee *object.Account) error {
+func (r *relationship) FollowUser(ctx context.Context, tx *sqlx.Tx, follower *object.Account, followee *object.Account) error {
 	var count int
 
 	err := r.db.QueryRowContext(ctx, "SELECT count(*) FROM relationship WHERE follower_id = ? AND followee_id = ?", follower.ID, followee.ID).Scan(&count)
