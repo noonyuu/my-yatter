@@ -11,13 +11,13 @@ import (
 
 // Implementation of handler
 type handler struct {
-	statusUsecase usecase.Status
+	su usecase.Status
 }
 
 // Create Handler for `/v1/statuses/`
 func NewRouter(ar repository.Account, su usecase.Status) http.Handler {
 	r := chi.NewRouter()
-	h := &handler{statusUsecase: su}
+	h := &handler{su: su}
 	// r.Group()により、特定のグループに対してミドルウェアを適用する
 	// グループに対して適用されたミドルウェアは、そのグループに属する全てのエンドポイントに対して適用される
 	r.Group(func(r chi.Router) {
@@ -33,7 +33,7 @@ func NewRouter(ar repository.Account, su usecase.Status) http.Handler {
 
 func NewTimelineRouter(su usecase.Status) http.Handler {
 	r := chi.NewRouter()
-	h := &handler{statusUsecase: su}
+	h := &handler{su: su}
 	
 	r.Get("/public", h.GetPublicTimeline)
 

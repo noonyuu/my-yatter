@@ -26,7 +26,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		panic(fmt.Sprintf("Must Implement Status Creation And Check Acount Info %v", account_info))
 	}
 
-	dto, err := h.statusUsecase.Create(ctx, req.Status, account_info)
+	dto, err := h.su.Create(ctx, req.Status, account_info)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -19,7 +19,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 
-	dto, err := h.statusUsecase.FindByStatus(ctx, id)
+	dto, err := h.su.FindByStatus(ctx, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -41,7 +41,7 @@ func (h *handler) GetPublicTimeline(w http.ResponseWriter, r *http.Request) {
 	sinceId := r.URL.Query().Get("since_id")
 	limit := r.URL.Query().Get("limit")
 
-	dto, err := h.statusUsecase.GetPublicTimeline(ctx, maxId, sinceId, limit)
+	dto, err := h.su.GetPublicTimeline(ctx, maxId, sinceId, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
