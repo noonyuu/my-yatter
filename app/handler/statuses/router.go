@@ -25,6 +25,7 @@ func NewRouter(ar repository.Account, su usecase.Status) http.Handler {
 		// リクエストの認証を行う
 		r.Use(auth.Middleware(ar))
 		r.Post("/", h.Create)
+		// TODO /{username}のハンドラを追加する
 	})
 	r.Route("/{id}", func(r chi.Router) {
 		r.Use(id)
