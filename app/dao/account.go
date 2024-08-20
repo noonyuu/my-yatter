@@ -28,15 +28,18 @@ func NewAccount(db *sqlx.DB) *account {
 // FindByUsername : ユーザ名からユーザを取得
 func (a *account) FindByUsername(ctx context.Context, username string) (*object.Account, error) {
 	entity := new(object.Account)
-	err := a.db.QueryRowxContext(ctx, "select * from account where username = ?", username).StructScan(entity)
+	err := a.db.QueryRowxContext(ctx, "SELECT * FROM account WHERE username = ?", username).StructScan(entity)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("failed to find account from db: %w", err)
+		return nil, fmt.Errorf("failed to find account FROM db: %w", err)
 	}
-
+	err = a.FollowerAndFollowingCount(ctx, entity)
+	if err != nil {
+		return nil, err
+	}
 	return entity, nil
 }
 
@@ -52,14 +55,98 @@ func (a *account) Create(ctx context.Context, tx *sqlx.Tx, acc *object.Account) 
 
 func (a *account) FindAccountByID(ctx context.Context, id int) (*object.Account, error) {
 	entity := new(object.Account)
-	err := a.db.QueryRowxContext(ctx, "select * from account where id = ?", id).StructScan(entity)
+	err := a.db.QueryRowxContext(ctx, "SELECT * FROM account WHERE id = ?", id).StructScan(entity)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("failed to find account from db: %w", err)
+		return nil, fmt.Errorf("failed to find account FROM db: %w", err)
+	}
+	err = a.FollowerAndFollowingCount(ctx, entity)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
+func (a *account) UpdateAccountCredential(ctx context.Context, x *sqlx.Tx, account *object.Account) error {
+	tx, err := a.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	_, err = tx.ExecContext(ctx, "update account set display_name = ?, note = ?, avatar = ?, header = ? WHERE id = ?",
+		account.DisplayName, account.Note, account.Avatar, account.Header, account.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update account: %w", err)
+	}
+	return nil
+}
+
+func (a *account) FolloweeAccount(ctx context.Context, follower *object.Account, limit int) ([]*object.Account, error) {
+	query := "SELECT * FROM account WHERE id in (SELECT followee_id FROM Relationship WHERE follower_id = ?) ORDER BY id DESC LIMIT ?"
+	rows, err := a.db.QueryxContext(ctx, query, follower.ID, limit)
+	if err != nil {
+		return nil, err
 	}
 
-	return entity, nil
+	var accounts []*object.Account
+	for rows.Next() {
+		entity := new(object.Account)
+		if err := rows.StructScan(entity); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, entity)
+	}
+	for _, account := range accounts {
+		err := a.FollowerAndFollowingCount(ctx, account)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return accounts, nil
+}
+
+func (a *account) FollowerAccount(ctx context.Context, followee *object.Account, limit, sinceId int) ([]*object.Account, error) {
+	query := "SELECT * FROM account WHERE id in (SELECT follower_id FROM relationship WHERE followee_id = ?) and id >= ? ORDER BY id DESC LIMIT ?"
+
+	rows, err := a.db.QueryxContext(ctx, query, followee.ID, sinceId, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var accounts []*object.Account
+	for rows.Next() {
+		entity := new(object.Account)
+		if err := rows.StructScan(entity); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, entity)
+	}
+	for _, account := range accounts {
+		err := a.FollowerAndFollowingCount(ctx, account)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return accounts, nil
+}
+
+func (a *account) FollowerAndFollowingCount(ctx context.Context, entity *object.Account) error {
+	err := a.db.QueryRowxContext(ctx, "SELECT count(*) FROM relationship WHERE followee_id = ?", entity.ID).Scan(&entity.FolloweeCount)
+	if err != nil {
+		return err
+	}
+	err = a.db.QueryRowxContext(ctx, "SELECT count(*) FROM relationship WHERE follower_id = ?", entity.ID).Scan(&entity.FollowerCount)
+	if err != nil {
+		return err
+	}
+	return nil
 }

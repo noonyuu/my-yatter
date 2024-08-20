@@ -12,7 +12,7 @@ import (
 type Status interface {
 	Create(ctx context.Context, status string, acc *object.Account) (*CreateStatusDTO, error)
 	FindByStatus(ctx context.Context, id string) (*GetStatusDTO, error)
-	GetPublicTimeline(ctx context.Context, maxId, sinceId, limit string) (*GetPublicStatusDTO, error)
+	DeleteStatus(ctx context.Context, id string) error
 }
 
 type status struct {
@@ -29,11 +29,6 @@ type CreateStatusDTO struct {
 type GetStatusDTO struct {
 	Account *object.Account
 	Status  *object.Status
-}
-
-type GetPublicStatusDTO struct {
-	Account []*object.Account
-	Status  []*object.Status
 }
 
 var _ Status = (*status)(nil)
@@ -95,39 +90,28 @@ func (s *status) FindByStatus(ctx context.Context, sid string) (*GetStatusDTO, e
 	}, nil
 }
 
-func (s *status) GetPublicTimeline(ctx context.Context, maxId, sinceId, limit string) (*GetPublicStatusDTO, error) {
-	// maxId, sinceId, limitをintに変換
-	maxID, err := strconv.Atoi(maxId)
+func (s *status) DeleteStatus(ctx context.Context, id string) error {
+	tx, err := s.db.Beginx()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	sinceID, err := strconv.Atoi(sinceId)
-	if err != nil {
-		return nil, err
-	}
-	lmt, err := strconv.Atoi(limit)
-	if err != nil {
-		return nil, err
-	}
-
-	// statusの取得
-	sta, err := s.sr.GetPublicTimeline(ctx, maxID, sinceID, lmt)
-	if err != nil {
-		return nil, err
-	}
-
-	// statusに紐づくaccountの取得
-	// statusの数のスライスを作成
-	acc := make([]*object.Account, len(sta))
-	for i := range sta {
-		acc[i], err = s.ar.FindAccountByID(ctx, sta[i].AccountID)
-		if err != nil {
-			return nil, err
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
 		}
+		tx.Commit()
+	}()
+
+	// idをintに変換
+	ID, err := strconv.Atoi(id)
+	if err != nil {
+		return err
 	}
 
-	return &GetPublicStatusDTO{
-		Account: acc,
-		Status:  sta,
-	}, nil
+	// statusの削除
+	err = s.sr.DeleteStatus(ctx, tx, ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

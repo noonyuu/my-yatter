@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"yatter-backend-go/app/domain/repository"
+	"yatter-backend-go/app/handler/auth"
 	"yatter-backend-go/app/usecase"
 
 	"github.com/go-chi/chi/v5"
@@ -11,24 +12,36 @@ import (
 
 // Implementation of handler
 type handler struct {
-	rr repository.Relationship
+	ru usecase.Relationship
 	au usecase.Account
+	ar repository.Account
 }
 
 // Create Handler for `/v1/accounts/`
-func NewRouter(rr repository.Relationship, au usecase.Account, ar repository.Account) http.Handler {
+func NewRouter(ru usecase.Relationship, au usecase.Account, ar repository.Account) http.Handler {
 	r := chi.NewRouter()
 
 	h := &handler{
-		rr: rr,
+		ru: ru,
 		au: au,
+		ar: ar,
 	}
 	r.Post("/", h.Create)
+	r.With(auth.Middleware(ar)).Post("/update_credentials", h.UpdateCredential)
+	r.With(auth.Middleware(ar)).Get("/relationships", h.Relationships)
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(username)
 		r.Get("/", h.FindByUsername)
+		r.Get("/following", h.Following)
+		r.Get("/followers", h.Followers)
+
+		r.Group(func(r chi.Router) {
+			r.Use(auth.Middleware(ar))
+			r.Post("/follow", h.Follow)
+			r.Post("/unfollow", h.UnFollow)
+		})
+
 	})
-	r.Post("/update_credentials", h.UpdateCredentials)
 	return r
 }
 
